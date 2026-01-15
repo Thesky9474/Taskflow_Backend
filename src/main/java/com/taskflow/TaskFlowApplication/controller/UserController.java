@@ -2,7 +2,6 @@ package com.taskflow.TaskFlowApplication.controller;
 
 import com.taskflow.TaskFlowApplication.dto.request.CreateUserRequest;
 import com.taskflow.TaskFlowApplication.dto.response.UserResponse;
-import com.taskflow.TaskFlowApplication.entity.User;
 import com.taskflow.TaskFlowApplication.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

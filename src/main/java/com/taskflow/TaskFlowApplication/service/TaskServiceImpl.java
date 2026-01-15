@@ -18,71 +18,68 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TaskServiceImpl implements TaskService{
+public class TaskServiceImpl implements TaskService {
 
-    private final NotificationService notificationService;
-    private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
+        private final NotificationService notificationService;
+        private final TaskRepository taskRepository;
+        private final UserRepository userRepository;
 
+        @Override
+        public TaskResponse createTask(CreateTaskRequest request) {
+                User user = userRepository.findById(request.getUserId())
+                                .orElseThrow(() -> new RuntimeException("User Not found"));
 
-    @Override
-    public TaskResponse createTask(CreateTaskRequest request) {
-        User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new RuntimeException("User Not found"));
+                Task task = new Task();
+                task.setTitle(request.getTitle());
+                task.setDescription(request.getDescription());
+                task.setStatus(request.getStatus());
+                task.setPriority(request.getPriority() != null ? request.getPriority() : "MEDIUM");
+                task.setAssignedTo(user);
 
-        Task task = new Task();
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setStatus(request.getStatus());
-        task.setAssignedTo(user);
+                Task saved = taskRepository.save(task);
 
-        Task saved = taskRepository.save(task);
+                notificationService.sendTaskNotification(saved.getId());
 
-        notificationService.sendTaskNotification(saved.getId());
+                return mapToResponse(saved);
+        }
 
-        return new TaskResponse(
-                saved.getId(),
-                saved.getTitle(),
-                saved.getStatus(),
-                user.getId()
-        );
-    }
+        @Override
+        @Transactional(readOnly = true)
+        public Page<TaskResponse> getTasksByUser(Long userId, int page, int size) {
+                Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<TaskResponse> getTasksByUser(Long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+                return taskRepository.findTaskWithUser(userId, pageable)
+                                .map(this::mapToResponse);
+        }
 
-        return taskRepository.findTaskWithUser(userId, pageable)
-                .map(t -> new TaskResponse(
-                        t.getId(),
-                        t.getTitle(),
-                        t.getStatus(),
-                        t.getAssignedTo().getId()
-                ));
-    }
+        @Override
+        @Transactional
+        public TaskResponse updateTaskStatus(Long taskId, UpdateTaskStatusRequest request) {
+                Task task = taskRepository.findById(taskId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
-    @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public TaskResponse updateTaskStatus(Long taskId, UpdateTaskStatusRequest request){
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+                task.setStatus(request.getStatus());
+                Task saved = taskRepository.save(task);
 
-        task.setStatus(request.getStatus());
+                return mapToResponse(saved);
+        }
 
-        return new TaskResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getStatus(),
-                task.getAssignedTo().getId()
-        );
-    }
+        @Override
+        @Transactional
+        public void deleteTask(Long taskId) {
+                Task task = taskRepository.findById(taskId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
-    @Override
-    @Transactional
-    public void deleteTask(Long taskId){
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+                taskRepository.delete(task);
+        }
 
-        taskRepository.delete(task);
-    }
+        private TaskResponse mapToResponse(Task task) {
+                return new TaskResponse(
+                                task.getId(),
+                                task.getTitle(),
+                                task.getDescription(),
+                                task.getStatus(),
+                                task.getPriority(),
+                                task.getAssignedTo().getId());
+        }
 }

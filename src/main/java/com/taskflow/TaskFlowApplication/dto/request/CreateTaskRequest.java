@@ -17,6 +17,8 @@ public class CreateTaskRequest {
     @NotBlank
     private String status;
 
+    private String priority; // HIGH, MEDIUM, LOW - defaults to MEDIUM if null
+
     @NotNull
     private Long userId;
 }
