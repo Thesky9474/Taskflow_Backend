@@ -174,4 +174,4 @@ This project is created for educational purposes.
 
 ---
 
-For frontend setup, see [task-flow-frontend README](../task-flow-frontend/README.md)
+For frontend setup, see [task-flow-frontend README](https://github.com/Thesky9474/Taskflow_Frontend)
