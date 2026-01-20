@@ -2,7 +2,8 @@ services:
   - type: web
     name: taskflow-backend
     runtime: docker
-    dockerfilePath: ./Dockerfile
+    # No rootDir needed - code is at repository root
+    dockerfilePath: Dockerfile
     envVars:
       - key: SPRING_DATASOURCE_URL
         sync: false
@@ -14,6 +15,8 @@ services:
         generateValue: true
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
 
 databases:
   - name: taskflow-db
