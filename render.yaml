@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: taskflow-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_JWT_SECRET
+        generateValue: true
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+
+databases:
+  - name: taskflow-db
+    databaseName: taskflow
+    user: taskflow
